@@ -1,2 +1,9 @@
 CMakeFiles/
 CMakeCache.txt
+
+# Build artifacts
+cmake_install.cmake
+Makefile
+code
+*.o
+build/
