@@ -8,7 +8,6 @@ private:
     char* data_;
     size_t size_;
 
-    // allocate buffer of given size (not including null), initialize to zeros
     void allocate_and_copy_from(const char* src, size_t n) {
         delete[] data_;
         size_ = n;
@@ -29,6 +28,15 @@ public:
         data_[1] = '\0';
     }
 
+    // Additional convenience constructor from C-string (lvalue)
+    str(const char* s_) : data_(nullptr), size_(0) {
+        const char* s = s_ ? s_ : "";
+        size_ = std::strlen(s);
+        data_ = new char[size_ + 1];
+        if (size_) std::memcpy(data_, s, size_);
+        data_[size_] = '\0';
+    }
+
     // treat rvalue const char* as a C-string source
     str(const char*&& s_) : data_(nullptr), size_(0) {
         const char* s = s_ ? s_ : "";
@@ -36,6 +44,14 @@ public:
         data_ = new char[size_ + 1];
         if (size_) std::memcpy(data_, s, size_);
         data_[size_] = '\0';
+    }
+
+    // Assignment from C-string (lvalue)
+    str& operator=(const char* s_) {
+        const char* s = s_ ? s_ : "";
+        size_t n = std::strlen(s);
+        allocate_and_copy_from(s, n);
+        return *this;
     }
 
     str& operator=(const char*&& s_) {
@@ -51,6 +67,24 @@ public:
         data_[size_] = '\0';
     }
 
+    // Move operations for efficiency
+    str(str&& other) noexcept : data_(other.data_), size_(other.size_) {
+        other.data_ = new char[1];
+        other.data_[0] = '\0';
+        other.size_ = 0;
+    }
+
+    str& operator=(str&& other) noexcept {
+        if (this == &other) return *this;
+        delete[] data_;
+        data_ = other.data_;
+        size_ = other.size_;
+        other.data_ = new char[1];
+        other.data_[0] = '\0';
+        other.size_ = 0;
+        return *this;
+    }
+
     str& operator=(const str& other) {
         if (this == &other) return *this;
         allocate_and_copy_from(other.data_, other.size_);
@@ -58,6 +92,7 @@ public:
     }
 
     char& operator[](size_t pos) { return data_[pos]; }
+    const char& operator[](size_t pos) const { return data_[pos]; }
 
     size_t len() const { return size_; }
 
@@ -75,7 +110,6 @@ public:
         res.data_ = new char[total + 1];
 
         size_t pos = 0;
-        // copy first string
         if (strs[0].size_) {
             std::memcpy(res.data_ + pos, strs[0].data_, strs[0].size_);
             pos += strs[0].size_;
