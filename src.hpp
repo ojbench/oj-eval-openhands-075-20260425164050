@@ -23,17 +23,31 @@ inline int my_strcmp(const char* a, const char* b) {
 inline char* my_strcpy(char* dst, const char* src) {
     if (!dst) return nullptr;
     if (!src) { *dst = '\0'; return dst; }
+    if (dst == src) return dst;
+    std::size_t n = my_strlen(src);
+    const char* s = src;
     char* d = dst;
-    while ((*d++ = *src++)) {}
+    if (d > s && d < s + n + 1) {
+        for (std::size_t i = 0; i <= n; ++i) d[n - i] = s[n - i];
+    } else {
+        for (std::size_t i = 0; i <= n; ++i) d[i] = s[i];
+    }
     return dst;
 }
 
 inline char* my_strcat(char* dst, const char* src) {
     if (!dst) return nullptr;
-    char* d = dst;
-    while (*d) ++d;
-    if (!src) { *d = '\0'; return dst; }
-    while ((*d++ = *src++)) {}
+    if (!src) return dst; // nothing to append
+    std::size_t dlen = my_strlen(dst);
+    std::size_t slen = my_strlen(src);
+    char* d = dst + dlen;
+    const char* s = src;
+    if (d > s && d < s + slen + 1) {
+        // overlap: copy backwards including null terminator
+        for (std::size_t i = 0; i <= slen; ++i) d[slen - i] = s[slen - i];
+    } else {
+        for (std::size_t i = 0; i <= slen; ++i) d[i] = s[i];
+    }
     return dst;
 }
 
